@@ -4,7 +4,8 @@
 ## web服务如何处理一个请求
 
 url-->网络-->dns解析-->目标服务器
-    如何响应这个请求-->路由//规则
+
+如何响应这个请求-->路由//规则
 
 ### 请求的方法来区分
 
@@ -12,8 +13,8 @@ url-->网络-->dns解析-->目标服务器
 2. POST
 
 ### 通过uri（路径）
-e.g. www.baidu.com/a/b/c.html
-其中/a/b/c.html就是uri
+e.g. ` www.baidu.com/a/b/c.html `
+其中` /a/b/c.html `就是uri
 
 
 ## app.all
@@ -24,6 +25,7 @@ app.all('/demo', (req, res)=>{})
 ```
 
 2. 无论客户端使用任何uri，我们的服务器都可以得到响应
+
 典型的使用场景就是日志
 
 ```javascript

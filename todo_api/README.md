@@ -20,6 +20,7 @@
 3. 生成模型文件
 
     3.1. migrate文件
+
     3.2. model文件
 
     ` npx sequelize model:generate --name Todo --attributes name:string,deadline:date,content:string `
@@ -39,6 +40,7 @@
 1. pm2安装
 
     ` npm install pm2 -g `
+
 2. pm2初始化
 
 在项目目录中执行
@@ -47,7 +49,9 @@
 
 生成
 
-> ecosystem.config.js
+```
+ecosystem.config.js
+```
 
 3. 启动程序
 
@@ -55,11 +59,13 @@
 
     ` pm2 start ecosystem.config.js `
 
+```
 ┌────┬───────────┬──────────┬────┬───────────┬──────┬──────────┐
 │ id │ name      │ mode     │ ↺  │ status    │ cpu  │ memory   │
 ├────┼───────────┼──────────┼────┼───────────┼──────┼──────────┤
 │ 0  │ todo_api  │ cluster  │ 0  │ online    │ 0%   │ 34.6mb   │
 └────┴───────────┴──────────┴────┴───────────┴──────┴──────────┘
+```
 
 运维不需要知道服务怎样去跑的，只需要知道 启动命令/运维命令/运维文档 就可以了
 1. 启动命令

@@ -39,17 +39,27 @@ express是node中一种Web框架
 # 课程回顾
 
 1. 技术栈
+
     1.1. node --> http, 异常
+
     1.2. web框架，express,hapi,koa,egg
+
     1.3. 参数校验
+
     1.4. mysql的使用
+
     1.5. ORM， sequelize的使用
 
 2. 技术的关键点
+
     2.1. api的使用流程
+
     web-->webserver-->router-->hander-->orm-->db
 
 3. 注意事项
+
     3.1. demo，真实开发中，需要做详细的模型设计-->模型之间的关系
+
     3.2. api的使用文档-->api文档的使用工具
+
     3.3. 测试，获取测试用例并严格的跑一遍
