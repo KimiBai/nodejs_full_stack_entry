@@ -19,17 +19,27 @@ e.g. www.baidu.com/a/b/c.html
 ## app.all
 1. 需要定义一个api/路由需要满足客户端无论使用什么请求方式(get/post/delete/put)都可以得到响应
 
-> app.all('/demo', (req, res)=>{})
+```javascript
+app.all('/demo', (req, res)=>{})
+```
 
 2. 无论客户端使用任何uri，我们的服务器都可以得到响应
 典型的使用场景就是日志
 
-> app.all('*', (req, res)=>{})
+```javascript
+app.all('*', (req, res)=>{})
+```
 
 ## app.use
 可以实现app.all实现的两种场景
-1. app.use('/demo', (req, res))=>{})
-2. app.use((req, res)=>{})
+
+```javascript
+app.use('/demo', (req, res))=>{})
+```
+
+```javascript
+app.use((req, res)=>{})
+```
 
 注意： app.use常用作中间件的使用
 
@@ -39,4 +49,6 @@ e.g. www.baidu.com/a/b/c.html
 ### sku
 ### order
 
-> express.Router
+```javascript
+express.Router
+```

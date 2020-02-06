@@ -47,7 +47,8 @@ express是node中一种Web框架
 
 2. 技术的关键点
     2.1. api的使用流程
-        web-->webserver-->router-->hander-->orm-->db
+    web-->webserver-->router-->hander-->orm-->db
+
 3. 注意事项
     3.1. demo，真实开发中，需要做详细的模型设计-->模型之间的关系
     3.2. api的使用文档-->api文档的使用工具
