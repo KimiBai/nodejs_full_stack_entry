@@ -3,9 +3,10 @@ import moment from 'moment';
 import { Table, Button, Drawer, Form, Input, DatePicker} from 'antd';
 
 import http from './server';
+import CreateTodoDrawer from './CreateTodo';
 
 function disabledDate(current) {
-  // Can not select days before today
+  // Can not select days before today and today
   return current && current < moment().endOf('day');
 }
 
@@ -18,10 +19,8 @@ class EditTodoDrawerForm extends React.Component {
         };
     }
 
-    //state = { visible: false, }
     async saveTodo(todo) {
-      console.log("save todo param", todo)
-      console.log("save todo param", todo.dateTime.format("YYYY-MM-DD"))
+      //console.log("save todo param", todo)
 
       const res = await http.post('/update', {
         id: todo.id,
@@ -29,11 +28,10 @@ class EditTodoDrawerForm extends React.Component {
         deadline: todo.dateTime.format("YYYY-MM-DD"),
         content: todo.content,
       })
-      console.log("save todo res", res)
 
       if (res) {
         console.log(this.props);
-        this.props.handleEdit(res.data.todo);        
+        this.props.handleEdit(res.data.todo);
       }
     }
 
@@ -58,6 +56,7 @@ class EditTodoDrawerForm extends React.Component {
       this.setState({
         visible: true,
       });
+      this.props.form.resetFields();
     };
   
     onClose = () => {
@@ -145,6 +144,20 @@ class EditTodoDrawerForm extends React.Component {
 
 const EditTodoDrawer = Form.create({})(EditTodoDrawerForm);
 
+async function getTodoList(status, page, callback) {
+  let url = '/list/' + status + '/' + page;
+  const res = await http.get(url, {})
+  //console.log(res);
+
+  res.data.list.rows.map((val, idx) => {
+    val['key'] = idx
+
+    return val;
+  })
+
+  callback(res.data);
+}
+
 class TodoTable extends React.Component {
     constructor(props) {
         super(props);
@@ -208,7 +221,7 @@ class TodoTable extends React.Component {
                         <Button onClick={ e => this.update2DeleteStatus(e) } data-id={record.id} size={'small'} style={{ color: '#ff0000' }}>删除</Button>
                       </div>
                     );
-                  case 3://删除
+                  case 3:// 删除
                     return (
                       <div>
                         <EditTodoDrawer todoItem={record} handleEdit={this.handleEdit.bind(this)}/>
@@ -222,27 +235,21 @@ class TodoTable extends React.Component {
               filters: [
                 {
                   text: '全部',
-                  value: 'all', // -1
-                  onFilter: (value, record) => {
-                    console.log("全部 on filter selected, " + value + "record:" + JSON.stringify(record));
-                  },
+                  value: -1, // -1
                 },
                 {
                   text: '待办',
-                  value: 'todo', // 1
+                  value: 1, // 1
                 },
                 {
                   text: '完成',
-                  value: 'done', // 2
+                  value: 2, // 2
                 },
                 {
                   text: '删除',
-                  value: 'delete', // 3
+                  value: 3, // 3
                 },
               ],
-              // specify the condition of filtering result
-              // here is that finding the name started with `value`
-              onFilter: (value, record) => record.name.indexOf(value) === 0,
               filterMultiple: false,
             },
           ];
@@ -257,43 +264,25 @@ class TodoTable extends React.Component {
         }
     }
 
-    async getTodoList(status, page) {
-      let url = '/list/' + status + '/' + page;
-      const res = await http.get(url, {})
-      //console.log(res);
-
-      res.data.list.rows.map((val, idx) => {
-        //console.log("res val", val)
-        val['key'] = idx
-
-        return val;
-      })
-
-      console.log("res data", res.data);
-
-      this.setState({
-        dataSource: res.data.list.rows,
-        dataTotal: res.data.list.count,
-      })
-    }
-
     componentDidMount() {
-      console.log("componentDidMount");
-      this.getTodoList(this.state.queryInfo.currentStatus, this.state.queryInfo.currentPage)
+      //console.log("componentDidMount");
+      getTodoList(this.state.queryInfo.currentStatus,
+        this.state.queryInfo.currentPage,
+        (data) => {
+          this.setState({
+            dataSource: data.list.rows,
+            dataTotal: data.list.count,
+          })
+        })
     }
-
-    // componentDidUpdate() {
-    //  console.log("componentDidUpdate list data:", JSON.stringify(this.state.dataSource))
-    // }
 
     async update2TodoStatus(e) {
       let id = e.target.dataset.id - 0;
-      //console.log("update status", id)
+
       const res = await http.post('/update_status', {
         id: id,
         status: 1
       })
-      //console.log("update status", res)
 
       if (res) {
         let todo = res.data.todo;
@@ -311,12 +300,11 @@ class TodoTable extends React.Component {
     
     async update2CompleteStatus(e) {
       let id = e.target.dataset.id - 0;
-      //console.log("update status", id)
+
       const res = await http.post('/update_status', {
         id: id,
         status: 2
       })
-      //console.log("update status", res)
 
       if (res) {
         let todo = res.data.todo;
@@ -330,17 +318,15 @@ class TodoTable extends React.Component {
 
         this.setState({ dataSource: newData })
       }
-      
     }
 
     async update2DeleteStatus(e) {
       let id = e.target.dataset.id - 0;
-      //console.log("update status", id)
+
       const res = await http.post('/update_status', {
         id: id,
         status: 3
       })
-      //console.log("update status", res)
 
       if (res) {
         let todo = res.data.todo;
@@ -371,7 +357,15 @@ class TodoTable extends React.Component {
     }
 
     pageChange(changePage) {
-      this.getTodoList(this.state.queryInfo.currentStatus, changePage);
+      getTodoList(
+        this.state.queryInfo.currentStatus,
+        changePage,
+        (data) => {
+          this.setState({
+            dataSource: data.list.rows,
+            dataTotal: data.list.count,
+          })
+        });
 
       let queryInfo = this.state.queryInfo;
       queryInfo.currentPage = changePage;
@@ -380,19 +374,59 @@ class TodoTable extends React.Component {
       })
     }
 
+    handleTableChange = (pagination, filters, sorter) => {
+      //console.log("handle table change ", pagination, filters, sorter);
+      let status = filters.operate ? filters.operate[0] : this.state.queryInfo.currentStatus;
+      status = status ? status : -1;
+
+      getTodoList(
+        status,
+        pagination.current,
+        (data) => {
+          this.setState({
+            dataSource: data.list.rows,
+            dataTotal: data.list.count,
+          })
+        });
+
+      let queryInfo = this.state.queryInfo;
+      queryInfo.currentPage = pagination.current;
+      queryInfo.currentStatus = status;
+      this.setState({
+        queryInfo: queryInfo,
+      })
+    }
+
+    createTodoHandle(flag) {
+      if (flag) {
+        getTodoList(
+          this.state.queryInfo.currentStatus,
+          this.state.queryInfo.currentPage,
+          (data) => {
+            this.setState({
+              dataSource: data.list.rows,
+              dataTotal: data.list.count,
+            })
+          });
+      }
+    }
+
     render() {
         return (
+          <div>
+            <CreateTodoDrawer createTodoHandle={(flag) => {this.createTodoHandle(flag)}} />
+
             <Table
               columns={this.columns}
               dataSource={this.state.dataSource}
               locale={locale}
               pagination={{
                   pageSize: this.state.queryInfo.pageSize,
-                  defaultPageSize: this.state.queryInfo.pageSize,
                   total: this.state.dataTotal,
-                  onChange: (current) => this.pageChange(current)
               }}
+              onChange={this.handleTableChange}
             />
+          </div>
         );
     };
 }
@@ -403,12 +437,4 @@ const locale = {
     filterClose: '取消',
 };
 
-class TodoList extends React.Component {
-    render() {
-        return (
-            <TodoTable />
-        );
-    }
-}
-
-export default TodoList;
+export default TodoTable;
