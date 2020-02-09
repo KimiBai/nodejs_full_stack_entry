@@ -5,11 +5,25 @@
 }
 
 .App-padding {
-  margin: 100px;
+  margin: 50px;
 }
 
 .space-line {
-  margin: 20px;
+  margin: 20px 0 20px 0;
+  text-align: center;
+}
+
+.drawer-button {
+  width: 100%;
+  margin-left: 0px;
+}
+
+.todo-list-visibale {
+  display: block!important;
+}
+
+.todo-list-invisibale {
+  display: none!important;
 }
 
 .App-logo {

@@ -1,106 +1,57 @@
 import React from 'react';
 import moment from 'moment';
-import { Table, Drawer, Form, Button, Input, Select, DatePicker, Icon } from 'antd';
+import { Drawer, Form, Button, Input, /*Select,*/ DatePicker } from 'antd';
+
+import http from './server';
+import TodoList from './TodoList';
+//import DrawerApp from './drawer';
 
 import './App.css';
 
-const { Option } = Select;
-
-const columns = [
-  {
-    title: 'Id',
-    dataIndex: 'id'
-  },
-  {
-    title: 'Name',
-    dataIndex: 'name'
-  },
-  {
-    title: 'Deadline',
-    dataIndex: 'deadline'
-  },
-  {
-    title: 'Content',
-    dataIndex: 'content'
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status'
-  },
-  {
-    title: '操作',
-    dataIndex: 'operate',
-    filters: [
-      {
-        text: '全部',
-        value: 'all',
-      },
-      {
-        text: '待办',
-        value: 'todo',
-      },
-      {
-        text: '完成',
-        value: 'done',
-      },
-      {
-        text: '删除',
-        value: 'delete',
-      },
-    ],
-    // specify the condition of filtering result
-    // here is that finding the name started with `value`
-    onFilter: (value, record) => record.name.indexOf(value) === 0,
-    filterMultiple: false,
-  },
-];
-
-const data = [
-  {
-    key: '1',
-    id: 1,
-    name: 'John Brown',
-    deadline: "2019-12-12",
-    content: "fix phone",
-    status: '待办',
-  },
-  {
-    key: '2',
-    id: 2,
-    name: 'Jim Green',
-    deadline: "2019-12-12",
-    content: "fix phone",
-    status: '待办',
-  },
-  {
-    key: '3',
-    id: 3,
-    name: 'Joe Black',
-    deadline: "2019-12-12",
-    content: "fix phone",
-    status: '完成',
-  },
-  {
-    key: '4',
-    id: 4,
-    name: 'Jim Red',
-    deadline: "2019-12-12",
-    content: "fix phone",
-    status: '待办',
-  },
-];
-
-function onChange(pagination, filters, sorter, extra) {
-  console.log('params', pagination, filters, sorter, extra);
-}
+//const { Option } = Select;
 
 function disabledDate(current) {
   // Can not select days before today
-  return current < moment().endOf('day');
+  return current && current < moment().endOf('day') - 1;
 }
 
 class DrawerForm extends React.Component {
   state = { visible: false };
+
+  async createTodo(todo) {
+    console.log("save todo param", todo)
+    console.log("save todo param", todo.dateTime.format("YYYY-MM-DD"))
+
+    const res = await http.post('/create', {
+      name: todo.name,
+      deadline: todo.dateTime.format("YYYY-MM-DD"),
+      content: todo.content,
+    })
+    console.log("create todo res", res)
+
+    if (res) {
+      console.log(this.props);
+    }
+  }
+
+  handleSubmit (e) {
+      e.preventDefault();
+      console.log("handle submit");
+      this.props.form.validateFields((err, values) => {
+          if (!err) {
+              console.log("Receive values of form", values);
+              this.createTodo(values);
+          }
+      });
+
+      console.log("handle submit 11111");
+
+      this.props.form.resetFields();//清除表单数据
+
+      this.setState({
+          visible: false,
+      });
+  }
 
   showDrawer = () => {
     this.setState({
@@ -108,41 +59,42 @@ class DrawerForm extends React.Component {
     });
   };
 
+  onSave = () => {
+    console.log("Save button clicked");
+
+    this.onClose();
+  }
+
   onClose = () => {
     this.setState({
       visible: false,
     });
   };
 
+  onReset = () => {
+    console.log("Reset button clicked");
+    this.props.form.resetFields();
+  }
+
   render() {
     const { getFieldDecorator } = this.props.form;
     return (
       <div>
-        <Button type="primary" onClick={this.showDrawer}>
-          <Icon type="plus" /> New account
-        </Button>
+        <Button onClick={this.showDrawer}>新增</Button>
+
         <Drawer
-          title="Create a new account"
+          title="新增任务"
           width={360}
           onClose={this.onClose}
           visible={this.state.visible}
-          bodyStyle={{ paddingBottom: 80 }}
         >
-          <Form layout="vertical" hideRequiredMark>
+          <Form layout="vertical" hideRequiredMark onSubmit={e => this.handleSubmit(e)}>
               <Form.Item label="Name">
                 {getFieldDecorator('name', {
-                  rules: [{ required: true, message: 'Please enter user name' }],
-                })(<Input placeholder="Please enter user name" />)}
-              </Form.Item>
-              <Form.Item label="Owner">
-                {getFieldDecorator('owner', {
-                  rules: [{ required: true, message: 'Please select an owner' }],
-                })(
-                  <Select placeholder="Please select an owner">
-                    <Option value="xiao">Xiaoxiao Fu</Option>
-                    <Option value="mao">Maomao Zhou</Option>
-                  </Select>,
-                )}
+                  rules: [{ required: true, message: 'Please enter name' }],
+                })(<Input
+                  placeholder= "Please enter name"
+                />)}
               </Form.Item>
               <Form.Item label="DateTime">
                 {getFieldDecorator('dateTime', {
@@ -155,58 +107,81 @@ class DrawerForm extends React.Component {
                   />,
                 )}
               </Form.Item>
-              <Form.Item label="Description">
-                {getFieldDecorator('description', {
+              <Form.Item label="Content">
+                {getFieldDecorator('content', {
                   rules: [
                     {
                       required: true,
-                      message: 'please enter url description',
+                      message: 'please enter content',
                     },
                   ],
-                })(<Input.TextArea rows={4} placeholder="please enter url description" />)}
+                })(<Input.TextArea rows={4} placeholder="please enter content" />)}
               </Form.Item>
-          </Form>
-          <div
-            style={{
-              position: 'absolute',
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              borderTop: '1px solid #e9e9e9',
-              padding: '10px 16px',
-              background: '#fff',
-              textAlign: 'right',
-            }}
-          >
-            <Button onClick={this.onClose} style={{ marginRight: 8 }}>
-              Cancel
-            </Button>
-            <Button onClick={this.onClose} type="primary">
-              Submit
-            </Button>
-          </div>
-        </Drawer>
-      </div>
+              <Form.Item>
+                    <Button htmlType="submit" style={{ marginRight: 35 }} type="primary">
+                        保存
+                    </Button>
+                    <Button onClick={this.onReset} style={{ marginRight: 35 }}>
+                        重置
+                    </Button>
+                    <Button onClick={this.onClose} style={{ color: '#ff0000' }}>
+                        取消
+                    </Button>
+                </Form.Item>
+            </Form>
+          </Drawer>
+        </div>
     );
   }
 }
 
 const AppDrawer = Form.create()(DrawerForm);
 
-function App() {
-  return (
-    <div className="App-padding">
-      <h2>导航</h2>
-      <Button>Show Todo List</Button>
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      listVisiable: false,
+    }
+  }
 
-      <p className="space-line"></p>
+  showTodoList() {
+    this.setState({
+      listVisiable: true,
+    })
+  }
 
-      <Table columns={columns} dataSource={data} onChange={onChange} />
+  render() {
+    if (this.state.listVisiable) {
+      return (
+        <div className="App-padding">
+          <h2>导航</h2>
+          <Button type="link" style={{ padding: 0 }}>显示任务列表</Button>
 
-      <AppDrawer />
+          <div>
+            <div className="space-line">
+              <h3>任务列表</h3>
+            </div>
 
-    </div>
-  );
+            <AppDrawer />
+
+            <TodoList />
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="App-padding">
+        <h2>导航</h2>
+        <Button
+          onClick={() => this.showTodoList()}
+          type="link"
+          style={{ padding: 0 }}
+        >显示任务列表</Button>
+      </div>
+      )
+    }
+  }
 }
 
 export default App;
