@@ -6,7 +6,7 @@ import http from './server';
 
 function disabledDate(current) {
     // Can not select days before today
-    return current && current < moment().endOf('day') - 1;
+    return current && current < moment().startOf('day');
 }
   
 class CreateTodoDrawerForm extends React.Component {
