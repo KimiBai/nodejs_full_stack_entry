@@ -26,6 +26,14 @@
   display: none!important;
 }
 
+.table-name-col-width {
+  width: 15%;
+}
+
+.table-content-col-width {
+  width: 35%;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

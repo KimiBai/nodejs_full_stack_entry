@@ -168,7 +168,8 @@ class TodoTable extends React.Component {
             },
             {
               title: '名称',
-              dataIndex: 'name'
+              dataIndex: 'name',
+              className: 'table-name-col-width'
             },
             {
               title: '截止日期',
@@ -179,7 +180,8 @@ class TodoTable extends React.Component {
             },
             {
               title: '内容',
-              dataIndex: 'content'
+              dataIndex: 'content',
+              className: 'table-content-col-width'
             },
             {
               title: '状态',
