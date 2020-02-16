@@ -115,9 +115,14 @@ app.get('/list/:status/:page', async (req, res, next)=>{
         let limit = 10;
         let offset = (page - 1) * limit;
         let where = {};
+        const Op = models.Sequelize.Op;
 
         if (status != -1) {
             where.status = status;
+        } else {
+            where = {
+                [Op.or] : [{ status : 1}, { status : 2}]
+            };
         }
 
         let list = await models.Todo.findAndCountAll({
