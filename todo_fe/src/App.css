@@ -34,6 +34,18 @@
   width: 35%;
 }
 
+.urgent-bg-color {
+  color: #ff0000;
+}
+
+.not-so-urgent-bg-color {
+  color: #faff00;
+}
+
+.normal-bg-color {
+  color: #000000;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

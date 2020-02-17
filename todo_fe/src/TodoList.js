@@ -144,8 +144,8 @@ class EditTodoDrawerForm extends React.Component {
 
 const EditTodoDrawer = Form.create({})(EditTodoDrawerForm);
 
-async function getTodoList(status, page, callback) {
-  let url = '/list/' + status + '/' + page;
+async function getTodoList(status, page, limit, callback) {
+  let url = '/list?status=' + status + '&page=' + page + '&limit=' + limit;
   const res = await http.get(url, {})
   //console.log(res);
 
@@ -174,8 +174,10 @@ class TodoTable extends React.Component {
             {
               title: '截止日期',
               dataIndex: 'deadline',
+              defaultSortOrder: 'descend',
+              sorter: (a, b) => moment(a.deadline).dayOfYear() - moment(b.deadline).dayOfYear(),
               render:(text, record, index) => {
-              return (<div>{moment(record.deadline).format("YYYY-MM-DD")}</div>)
+                return (<div>{moment(record.deadline).format("YYYY-MM-DD")}</div>)
               }
             },
             {
@@ -226,7 +228,7 @@ class TodoTable extends React.Component {
                   case 3:// 删除
                     return (
                       <div>
-                        <EditTodoDrawer todoItem={record} handleEdit={this.handleEdit.bind(this)}/>
+                        <Button onClick={ e => this.deleteTodoById(e) } data-id={record.id} size={'small'} style={{ color: '#ff0000' }}>清除</Button>
                       </div>
                     );
                   default:
@@ -259,7 +261,7 @@ class TodoTable extends React.Component {
             dataSource: [],
             dataTotal: 1,
             queryInfo: {
-                pageSize: 10,
+                pageSize: 25,
                 currentPage: 1,
                 currentStatus: -1,
             },
@@ -270,6 +272,7 @@ class TodoTable extends React.Component {
       //console.log("componentDidMount");
       getTodoList(this.state.queryInfo.currentStatus,
         this.state.queryInfo.currentPage,
+        this.state.queryInfo.pageSize,
         (data) => {
           this.setState({
             dataSource: data.list.rows,
@@ -362,6 +365,7 @@ class TodoTable extends React.Component {
       getTodoList(
         this.state.queryInfo.currentStatus,
         changePage,
+        this.state.queryInfo.pageSize,
         (data) => {
           this.setState({
             dataSource: data.list.rows,
@@ -376,6 +380,18 @@ class TodoTable extends React.Component {
       })
     }
 
+    async deleteTodoById(e) {
+      let id = e.target.dataset.id - 0;
+
+      const res = await http.post('/delete', {
+        id: id
+      })
+
+      if (res) {
+        this.pageChange(this.state.queryInfo.currentPage);
+      }
+    }
+
     handleTableChange = (pagination, filters, sorter) => {
       //console.log("handle table change ", pagination, filters, sorter);
       let status = filters.operate ? filters.operate[0] : this.state.queryInfo.currentStatus;
@@ -384,6 +400,7 @@ class TodoTable extends React.Component {
       getTodoList(
         status,
         pagination.current,
+        this.state.queryInfo.pageSize,
         (data) => {
           this.setState({
             dataSource: data.list.rows,
@@ -404,6 +421,7 @@ class TodoTable extends React.Component {
         getTodoList(
           this.state.queryInfo.currentStatus,
           this.state.queryInfo.currentPage,
+          this.state.queryInfo.pageSize,
           (data) => {
             this.setState({
               dataSource: data.list.rows,
@@ -420,6 +438,17 @@ class TodoTable extends React.Component {
 
             <Table
               columns={this.columns}
+              rowClassName={(record, index) => {
+                let diff = moment(record.deadline).dayOfYear() - moment().dayOfYear();
+                switch (diff) {
+                case 1:
+                  return 'urgent-bg-color';
+                case 2:
+                  return 'not-so-urgent-bg-color';
+                default:
+                  return 'normal-bg-color';
+                }
+              }}
               dataSource={this.state.dataSource}
               locale={locale}
               pagination={{

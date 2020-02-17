@@ -104,18 +104,47 @@ app.post('/update_status', async (req, res, next)=>{
 })
 
 /**
+ * 彻底删除一个Todo
+*/
+app.post('/delete', async (req, res, next)=>{
+    try {
+        let { id } = req.body;
+
+        let result = await models.Todo.destroy({
+            where:{
+                id
+            }
+        })
+
+        if (result) {
+			res.json({
+				result
+			})
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
+/**
  * 查询任务列表
 */
-app.get('/list/:status/:page', async (req, res, next)=>{
+app.get('/list', async (req, res, next)=>{
     //1. 状态 1-待办 2-完成 3-删除 -1-全部
     //2. 分页的处理
 
     try {
-        let {status, page} = req.params;
-        let limit = 10;
+        let {status, page, limit} = req.query;
+        status = status - 0;
+        page = page - 0;
+        limit = limit - 0;
         let offset = (page - 1) * limit;
         let where = {};
         const Op = models.Sequelize.Op;
+
+        if(!limit) {
+            limit = 10;
+        }
 
         if (status != -1) {
             where.status = status;
@@ -128,7 +157,8 @@ app.get('/list/:status/:page', async (req, res, next)=>{
         let list = await models.Todo.findAndCountAll({
             where,
             offset,
-            limit
+            limit,
+            order: [[ 'deadline', 'DESC' ]]// order by deadline DESC
         })
 
         res.json({
